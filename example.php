@@ -1,27 +1,38 @@
 <?php
 
 // Configure your credentials
-const CONSUMER_KEY        = '';
-const CONSUMER_SECRET     = '';
-const ACCESS_TOKEN        = '';
-const ACCESS_TOKEN_SECRET = '';
+$ck = '';
+$cs = '';
+$ot = '';
+$os = '';
+$tz = 'Asia/Tokyo';
 
-// Load library
-require_once 'src/TwitterText.php';
+// Use namespace
+use mpyw\TwitterText\Linkifier;
+use mpyw\TwitterText\ImageUtil;
+
+// Register autoloader
+// (Or use composer style autoloader: "require 'vendor/autoload.php';")
+spl_autoload_register(function ($class) {
+    $path = str_replace(array('mpyw', '\\'), array('src', '/'), $class) . '.php';
+    if (is_file($path)) {
+        require $path;
+    }
+});
 
 // Implement extended class
-class MyTwitterText extends TwitterText {
+class MyTwitterText extends Linkifier {
     
-    protected function linkifyUserMention(stdClass $user_mention) {
+    protected function linkifyUserMention(\stdClass $user_mention) {
         return sprintf('<a href="http://twitter.com/%1$s">@%1$s</a>', $user_mention->screen_name);
     }
     
-    protected function linkifyUrl(stdClass $url) {
+    protected function linkifyUrl(\stdClass $url) {
         if (!isset($url->expanded_url, $url->display_url)) {
             $url->expanded_url = $url->url;
             $url->display_url = mb_strimwidth($url->url, 0, 25, '...'); 
         }
-        $img = self::getImageUrls($url->expanded_url);
+        $img = ImageUtil::getUrls($url->expanded_url);
         return $img ?
             sprintf('<div><a href="%s">%s<br><img src="%s" alt=""></a></div>',
                 $url->expanded_url,
@@ -35,14 +46,14 @@ class MyTwitterText extends TwitterText {
         ;
     }
     
-    protected function linkifyHashtag(stdClass $hashtag) {
+    protected function linkifyHashtag(\stdClass $hashtag) {
         return sprintf('<a href="http://twitter.com/search/%s">%s</a>',
             urlencode('#' . $hashtag->text),
             '#' . $hashtag->text
         );
     }
     
-    protected function linkifySymbol(stdClass $symbol) {
+    protected function linkifySymbol(\stdClass $symbol) {
         return sprintf('<a href="http://twitter.com/search/%s">%s</a>',
             urlencode('$' . $symbol->text),
             '$' . $symbol->text
@@ -62,49 +73,42 @@ class MyTwitterText extends TwitterText {
     
 }
 
-// Define simple OAuth request function
-function twitter_get($url, array $params = array()) { 
-    $oauth = array(
-        'oauth_consumer_key'     => CONSUMER_KEY,
-        'oauth_signature_method' => 'HMAC-SHA1',
-        'oauth_timestamp'        => time(),
-        'oauth_version'          => '1.0',
-        'oauth_nonce'            => md5(mt_rand()),
-        'oauth_token'            => ACCESS_TOKEN,
-    );
-    $base = $oauth + $params;
-    uksort($base, 'strnatcmp');
-    $oauth['oauth_signature'] = base64_encode(hash_hmac(
-        'sha1',
-        implode('&', array_map('rawurlencode', array(
-            'GET',
-            $url,
-            http_build_query($base, '', '&', PHP_QUERY_RFC3986)
-        ))),
-        implode('&', array_map('rawurlencode', array(
-            CONSUMER_SECRET,
-            ACCESS_TOKEN_SECRET
-        ))),
-        true
-    ));
-    foreach ($oauth as $name => $value) {
-        $items[] = sprintf('%s="%s"', urlencode($name), urlencode($value));
-    }
-    $header = 'Authorization: OAuth ' . implode(', ', $items);
-    $ch = curl_init();
-    curl_setopt_array($ch, array(
-        CURLOPT_URL            => $url . '?' . http_build_query($params, '', '&'),
-        CURLOPT_HTTPHEADER     => array($header),
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING       => 'gzip',
-    ));
-    return json_decode(curl_exec($ch));
+// Wrapper for htmlspecialchars()
+function h($str, $double = true) {
+    return htmlspecialchars($str, ENT_QUOTES, 'UTF-8', $double);
 }
 
-$statuses = twitter_get('https://api.twitter.com/1.1/statuses/home_timeline.json');
-date_default_timezone_set('Asia/Tokyo');
-header('Content-Type: text/html; charset=UTF-8');
+// Temporarily install TwistOAuth
+function install_twistoauth() {
+    $url  = 'https://raw.githubusercontent.com/mpyw/TwistOAuth/master/src/TwistOAuth.php';
+    switch (true) {
+        case !$tmp = @tmpfile():
+        case !$fp = @fopen($url, 'rb'):
+        case !@stream_copy_to_stream($fp, $tmp):
+        case !$meta = @stream_get_meta_data($tmp):
+        case !@include $meta['uri']:
+            $error = error_get_last();
+            throw new \Exception($error['message']);
+    }
+}
+
+date_default_timezone_set($tz);
+ob_start();
+register_shutdown_function(function () {
+    file_put_contents('response.html', ob_get_flush());
+});
+$code = 200;
+
+try {
+    install_twistoauth();
+    $to = new \TwistOAuth($ck, $cs, $ot, $os);
+    $statuses = $to->get('statuses/home_timeline');
+} catch (\Exception $e) {
+    $code = $e->getCode() ?: 500;
+    $error = $e->getMessage();
+}
+
+header('Content-Type: text/html; charset=UTF-8', true, $code);
 
 ?>
 <!DOCTYPE html>
@@ -113,8 +117,8 @@ header('Content-Type: text/html; charset=UTF-8');
     <title>Test</title>
 </head>
 <body>
-<?php if (isset($statuses->errors)): ?>
-    <p><?=$statuses->errors[0]->message?></p>
+<?php if (isset($error)): ?>
+    <p><?=h($error)?></p>
 <?php elseif (is_array($statuses) && $statuses): ?>
 <?php foreach ($statuses as $i => $status): ?>
 <?php if (isset($status->retweeted_status)) { $status = $status->retweeted_status; } ?>
@@ -123,8 +127,8 @@ header('Content-Type: text/html; charset=UTF-8');
 <?php endif; ?>
     <article>
         <p style="font-size:120%;">
-            <img src="<?=$status->user->profile_image_url?>" alt="<?=$status->user->screen_name?>">
-            @<?=$status->user->screen_name?>(<?=$status->user->name?>)
+            <img src="<?=h($status->user->profile_image_url)?>" alt="<?=h($status->user->screen_name)?>">
+            @<?=h($status->user->screen_name)?>(<?=h($status->user->name)?>)
         </p>
         <p>
             <pre><?=
@@ -132,7 +136,7 @@ header('Content-Type: text/html; charset=UTF-8');
                 ->linkify($status->entities, isset($status->extended_entities) ? $status->extended_entities : null)
             ?></pre>
         </p>
-        <p style="font-size:75%;"><?=date('Y-m-d H:i:s', strtotime($status->created_at))?></p>
+        <p style="font-size:75%;"><?=h(date('Y-m-d H:i:s', strtotime($status->created_at)))?></p>
     </article>
 <?php endforeach; ?>
 <?php endif; ?>
