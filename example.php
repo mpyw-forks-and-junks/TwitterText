@@ -12,10 +12,6 @@ require_once 'TwitterText.php';
 // Implement extended class
 class MyTwitterText extends TwitterText {
     
-    public static function factory($text) {
-        return new self($text);
-    }
-    
     protected function linkifyUserMention(stdClass $user_mention) {
         return sprintf('<a href="http://twitter.com/%1$s">@%1$s</a>', $user_mention->screen_name);
     }

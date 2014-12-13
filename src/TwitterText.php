@@ -6,7 +6,7 @@
  * A class for linkifying tweets by entities.
  * Requires PHP 5.3.0 or later.
  * 
- * @Version 2.0.0
+ * @Version 2.1.0
  * @Author  CertaiN
  * @License BSD 2-Clause
  * @GitHub  http://github.com/mpyw/TwitterText
@@ -30,13 +30,13 @@ abstract class TwitterText {
     abstract protected function linkifyMediaList(array $media_list);
     
    /**
-    * Constructor. You should wrap this by facroty method on your extended classes.
+    * Constructor Wapper. Useful for method chaining.
     * 
     * @param  string $text Text returned from Twitter API.
     *                      Incompletely escaped chars are automatically fixed.
     */
-    final public function __construct($text) {
-        $this->text = $text;
+    final public static function factory($text) {
+        return new static($text);
     }
     
    /**
@@ -272,6 +272,10 @@ abstract class TwitterText {
             default:
                 return false;
         }
+    }
+    
+    final protected function __construct($text) {
+        $this->text = $text;
     }
     
 }
