@@ -1,13 +1,5 @@
 <?php
 
-// Configure your credentials
-$ck = '';
-$cs = '';
-$ot = '';
-$os = '';
-$tz = 'Asia/Tokyo';
-
-// Use namespace
 use mpyw\TwitterText\Linkifier;
 use mpyw\TwitterText\ImageUtil;
 
@@ -15,7 +7,7 @@ use mpyw\TwitterText\ImageUtil;
 require 'build/TwitterText.phar'; // require 'vendor/autoload.php';
 
 // Implement extended class
-class MyTwitterText extends Linkifier {
+class MyLinkifier extends Linkifier {
     
     protected function linkifyUserMention(\stdClass $user_mention) {
         return sprintf('<a href="http://twitter.com/%1$s">@%1$s</a>', $user_mention->screen_name);
@@ -84,6 +76,13 @@ function install_twistoauth() {
     }
 }
 
+// Configure your credentials
+$ck = '';
+$cs = '';
+$ot = '';
+$os = '';
+$tz = 'Asia/Tokyo';
+
 date_default_timezone_set($tz);
 ob_start();
 register_shutdown_function(function () {
@@ -127,7 +126,7 @@ header('Content-Type: text/html; charset=UTF-8', true, $code);
         </p>
         <p>
             <pre><?=
-                MyTwitterText::factory($status->text)
+                MyLinkifier::factory($status->text)
                 ->linkify($status->entities, isset($status->extended_entities) ? $status->extended_entities : null)
             ?></pre>
         </p>
