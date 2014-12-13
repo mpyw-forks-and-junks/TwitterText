@@ -102,7 +102,6 @@ function twitter_get($url, array $params = array()) {
     return json_decode(curl_exec($ch));
 }
 
-
 $statuses = twitter_get('https://api.twitter.com/1.1/statuses/home_timeline.json');
 date_default_timezone_set('Asia/Tokyo');
 header('Content-Type: text/html; charset=UTF-8');
@@ -119,10 +118,10 @@ header('Content-Type: text/html; charset=UTF-8');
 <?php elseif (is_array($statuses) && $statuses): ?>
 <?php foreach ($statuses as $i => $status): ?>
 <?php if (isset($status->retweeted_status)) { $status = $status->retweeted_status; } ?>
-    <article>
 <?php if ($i):?>
-        <hr>
+    <hr>
 <?php endif; ?>
+    <article>
         <p style="font-size:120%;">
             <img src="<?=$status->user->profile_image_url?>" alt="<?=$status->user->screen_name?>">
             @<?=$status->user->screen_name?>(<?=$status->user->name?>)
