@@ -83,7 +83,7 @@ try {
         switch (true) {
             case !$local  = @fopen(__DIR__ . '/TwistOAuth.phar', 'wb'):
             case !$remote = @fopen('https://raw.githubusercontent.com/mpyw/TwistOAuth/master/build/TwistOAuth.phar', 'rb'):
-            case !@stream_copy_to_stream($fp, $tmp):
+            case !@stream_copy_to_stream($remote, $local):
                 $error = error_get_last();
                 throw new \Exception($error['message']);
         }
