@@ -7,7 +7,7 @@ const ACCESS_TOKEN        = '';
 const ACCESS_TOKEN_SECRET = '';
 
 // Load library
-require_once 'TwitterText.php';
+require_once 'src/TwitterText.php';
 
 // Implement extended class
 class MyTwitterText extends TwitterText {
