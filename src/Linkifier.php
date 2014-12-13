@@ -1,17 +1,5 @@
 <?php
 
-/*
- * TwitterText
- *
- * A class for linkifying tweets by entities.
- * Requires PHP 5.3.0 or later.
- * 
- * @Version 3.0.0
- * @Author  CertaiN
- * @License BSD 2-Clause
- * @GitHub  http://github.com/mpyw/TwitterText
- */
-
 namespace mpyw\TwitterText;
 
 abstract class Linkifier {

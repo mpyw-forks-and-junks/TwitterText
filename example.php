@@ -11,14 +11,8 @@ $tz = 'Asia/Tokyo';
 use mpyw\TwitterText\Linkifier;
 use mpyw\TwitterText\ImageUtil;
 
-// Register autoloader
-// (Or use composer style autoloader: "require 'vendor/autoload.php';")
-spl_autoload_register(function ($class) {
-    $path = str_replace(array('mpyw', '\\'), array('src', '/'), $class) . '.php';
-    if (is_file($path)) {
-        require $path;
-    }
-});
+// Load library (Or use composer style autoloader)
+require 'build/TwitterText.phar'; // require 'vendor/autoload.php';
 
 // Implement extended class
 class MyTwitterText extends Linkifier {
@@ -78,15 +72,13 @@ function h($str, $double = true) {
     return htmlspecialchars($str, ENT_QUOTES, 'UTF-8', $double);
 }
 
-// Temporarily install TwistOAuth
+// Quickly install TwistOAuth
 function install_twistoauth() {
-    $url  = 'https://raw.githubusercontent.com/mpyw/TwistOAuth/master/src/TwistOAuth.php';
+    $url = 'https://raw.githubusercontent.com/mpyw/TwistOAuth/master/build/TwistOAuth.phar';
     switch (true) {
-        case !$tmp = @tmpfile():
+        case !$tmp = @fopen(__DIR__ . '/TwistOAuth.phar', 'wb'):
         case !$fp = @fopen($url, 'rb'):
         case !@stream_copy_to_stream($fp, $tmp):
-        case !$meta = @stream_get_meta_data($tmp):
-        case !@include $meta['uri']:
             $error = error_get_last();
             throw new \Exception($error['message']);
     }
@@ -100,7 +92,10 @@ register_shutdown_function(function () {
 $code = 200;
 
 try {
-    install_twistoauth();
+    if (!is_file(__DIR__ . '/TwistOAuth.phar')) {
+        install_twistoauth();
+    }
+    require __DIR__ . '/TwistOAuth.phar';
     $to = new \TwistOAuth($ck, $cs, $ot, $os);
     $statuses = $to->get('statuses/home_timeline');
 } catch (\Exception $e) {
