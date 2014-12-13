@@ -64,18 +64,6 @@ function h($str, $double = true) {
     return htmlspecialchars($str, ENT_QUOTES, 'UTF-8', $double);
 }
 
-// Quickly install TwistOAuth
-function install_twistoauth() {
-    $url = 'https://raw.githubusercontent.com/mpyw/TwistOAuth/master/build/TwistOAuth.phar';
-    switch (true) {
-        case !$tmp = @fopen(__DIR__ . '/TwistOAuth.phar', 'wb'):
-        case !$fp = @fopen($url, 'rb'):
-        case !@stream_copy_to_stream($fp, $tmp):
-            $error = error_get_last();
-            throw new \Exception($error['message']);
-    }
-}
-
 // Configure your credentials
 $ck = '';
 $cs = '';
@@ -92,7 +80,13 @@ $code = 200;
 
 try {
     if (!is_file(__DIR__ . '/TwistOAuth.phar')) {
-        install_twistoauth();
+        switch (true) {
+            case !$local  = @fopen(__DIR__ . '/TwistOAuth.phar', 'wb'):
+            case !$remote = @fopen('https://raw.githubusercontent.com/mpyw/TwistOAuth/master/build/TwistOAuth.phar', 'rb'):
+            case !@stream_copy_to_stream($fp, $tmp):
+                $error = error_get_last();
+                throw new \Exception($error['message']);
+        }
     }
     require __DIR__ . '/TwistOAuth.phar';
     $to = new \TwistOAuth($ck, $cs, $ot, $os);
