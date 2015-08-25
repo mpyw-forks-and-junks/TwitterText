@@ -107,7 +107,7 @@ try {
     $tz = new \DateTimeZone($timezone);
 
     // Get home timeline
-    $statuses = $to->get('statuses/home_timeline', ['count' => 200]);
+    $statuses = $to->get('statuses/home_timeline', array('count' => 200));
 
 } catch (\Exception $e) {
 
@@ -132,11 +132,11 @@ header('Content-Type: text/html; charset=UTF-8');
 <?php endif; ?>
     <article>
         <p style="font-size:120%;">
-            <img src="<?=$status->user->profile_image_url?>" alt="<?=$status->user->screen_name?>">
-            @<?=$status->user->screen_name?>(<?=htmlspecialchars($status->user->name, ENT_QUOTES, 'UTF-8')?>)
+            <img src="<?php echo $status->user->profile_image_url?>" alt="<?php echo $status->user->screen_name?>">
+            @<?php echo $status->user->screen_name?>(<?php echo htmlspecialchars($status->user->name, ENT_QUOTES, 'UTF-8')?>)
         </p>
         <p>
-            <pre><?=$lf->linkifyStatus($status)?></pre>
+            <pre><?php echo $lf->linkifyStatus($status)?></pre>
         </p>
         <p style="font-size:75%;"><?php
             $date = new \DateTime($status->created_at, $tz);
