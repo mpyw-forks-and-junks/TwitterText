@@ -2,16 +2,16 @@
 
 namespace mpyw\TwitterText;
 
-class ImageUtil {
-    
+class ImageUtil4JP {
+
    /**
     * Generate image urls from $expanded_url.
-    * 
+    *
     * @param  string    $expanded_url See here: https://dev.twitter.com/docs/tweet-entities
-    * @return mixed                   If $expanded_url is matched with supported format,
-    *                                 a stdClass object that contains 5 properties,
+    * @return mixed                   If $expanded_url matched supported format,
+    *                                 a stdClass object that contains 5 properties will be returned;
     *                                 "full", "large", "medium", "small", "mini".
-    *                                 If not, this returns FALSE.
+    *                                 Otherwise, FALSE will be returned.
     */
     public static function getUrls($expanded_url) {
         $elements = parse_url($expanded_url);
@@ -114,7 +114,7 @@ class ImageUtil {
                 }
             case 'f.hatena.ne.jp':
                 if (preg_match('@^/(([\\w-])[\\w-]*+)/((\\d{8})\\d++)/*+$@', $elements['path'], $matches)) {
-                    $header = 
+                    $header =
                         'http://img.f.hatena.ne.jp/images/fotolife/' .
                         $matches[2] . '/' . $matches[1] . '/' . $matches[4] . '/' . $matches[3]
                     ;
@@ -185,7 +185,5 @@ class ImageUtil {
                 return false;
         }
     }
-    
-    final protected function __construct() { }
-    
+
 }
