@@ -11,11 +11,7 @@ spl_autoload_register(function ($class) {
 });
 
 // Configure your credentials
-$consumer_key       = '';
-$consumer_secret    = '';
-$oauth_token        = '';
-$oauth_token_secret = '';
-$timezone           = 'Asia/Tokyo';
+extract(parse_ini_file(__DIR__ . '/config.ini'));
 
 // Create linkifier
 $lf = new Linkifier(array(
