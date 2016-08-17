@@ -2,7 +2,6 @@
     "name": "mpyw/twittertext",
     "type": "library",
     "description" : "Strict linkification tool for Twitter statuses.",
-    "version": "4.0.0",
     "license": "BSD-2-Clause",
     "keywords": [
         "Twitter",
